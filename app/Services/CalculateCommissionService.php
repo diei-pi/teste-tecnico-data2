@@ -79,8 +79,8 @@ class CalculateCommissionService
             $totalPendente += $processed['comissao_pendente'];
         }
 
-        $previewItems = count($processedItems) > 1000
-            ? array_slice($processedItems, 0, 1000)
+        $previewItems = count($processedItems) > 10000
+            ? array_slice($processedItems, 0, 10000)
             : $processedItems;
 
         return [
@@ -99,7 +99,7 @@ class CalculateCommissionService
             ],
             'items' => $previewItems,
             'total_items_count' => count($processedItems),
-            'is_truncated' => count($processedItems) > 1000,
+            'is_truncated' => count($processedItems) > 10000,
         ];
     }
 

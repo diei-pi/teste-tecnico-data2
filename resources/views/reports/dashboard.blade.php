@@ -207,6 +207,8 @@
                 search: '',
                 selectedCity: 'all',
                 selectedCategory: 'all',
+                perPage: 100,
+                currentPage: 1,
                 items: {{ json_encode($monthData['items']) }},
                 get filteredItems() {
                     return this.items.filter(item => {
@@ -221,6 +223,22 @@
 
                         return matchSearch && matchCity && matchCategory;
                     });
+                },
+                get totalPages() {
+                    return Math.ceil(this.filteredItems.length / this.perPage) || 1;
+                },
+                get paginatedItems() {
+                    const start = (this.currentPage - 1) * this.perPage;
+                    return this.filteredItems.slice(start, start + this.perPage);
+                },
+                changePage(page) {
+                    const p = Number(page);
+                    if (p >= 1 && p <= this.totalPages) {
+                        this.currentPage = p;
+                    }
+                },
+                resetPage() {
+                    this.currentPage = 1;
                 }
             }">
 
@@ -232,7 +250,7 @@
                             Visão transparente e auditável por imóvel para conferência contábil
                             @if(!empty($monthData['is_truncated']))
                                 <span class="ml-2 font-medium text-emerald-700 bg-emerald-50 px-2 py-0.5 rounded">
-                                    Exibindo primeiros 1.000 de {{ number_format($monthData['total_items_count'], 0, ',', '.') }} imóveis
+                                    Exibindo primeiros 10.000 de {{ number_format($monthData['total_items_count'], 0, ',', '.') }} imóveis
                                 </span>
                             @endif
                         </p>
@@ -242,14 +260,14 @@
                     <div class="flex flex-wrap items-center gap-3">
                         <!-- Search Box -->
                         <div class="relative">
-                            <input type="text" x-model="search" placeholder="Buscar imóvel ou bairro..." class="w-48 sm:w-60 text-xs bg-slate-50 border border-slate-300 rounded-lg pl-8 pr-3 py-2 focus:ring-2 focus:ring-emerald-500 focus:bg-white">
+                            <input type="text" x-model="search" @input="resetPage()" placeholder="Buscar imóvel ou bairro..." class="w-48 sm:w-60 text-xs bg-slate-50 border border-slate-300 rounded-lg pl-8 pr-3 py-2 focus:ring-2 focus:ring-emerald-500 focus:bg-white">
                             <svg class="w-4 h-4 text-slate-400 absolute left-2.5 top-2.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path>
                             </svg>
                         </div>
 
                         <!-- City Filter -->
-                        <select x-model="selectedCity" class="text-xs bg-slate-50 border border-slate-300 rounded-lg px-2.5 py-2 focus:ring-2 focus:ring-emerald-500">
+                        <select x-model="selectedCity" @change="resetPage()" class="text-xs bg-slate-50 border border-slate-300 rounded-lg px-2.5 py-2 focus:ring-2 focus:ring-emerald-500">
                             <option value="all">Todas as Cidades</option>
                             @php
                                 $cities = array_unique(array_column($monthData['items'], 'cidade'));
@@ -261,7 +279,7 @@
                         </select>
 
                         <!-- Category Filter -->
-                        <select x-model="selectedCategory" class="text-xs bg-slate-50 border border-slate-300 rounded-lg px-2.5 py-2 focus:ring-2 focus:ring-emerald-500">
+                        <select x-model="selectedCategory" @change="resetPage()" class="text-xs bg-slate-50 border border-slate-300 rounded-lg px-2.5 py-2 focus:ring-2 focus:ring-emerald-500">
                             <option value="all">Todas as Categorias</option>
                             <option value="venda_fechada">Vendas Fechadas (6%)</option>
                             <option value="aluguel_novo">Aluguel Novo (100%)</option>
@@ -287,7 +305,7 @@
                             </tr>
                         </thead>
                         <tbody class="divide-y divide-slate-200 bg-white">
-                            <template x-for="item in filteredItems" :key="item.codigo">
+                            <template x-for="item in paginatedItems" :key="item.codigo">
                                 <tr class="hover:bg-slate-50/80 transition">
                                     <td class="px-5 py-4 whitespace-nowrap">
                                         <div class="font-bold text-slate-900" x-text="item.codigo"></div>
@@ -338,8 +356,68 @@
                                     </td>
                                 </tr>
                             </template>
+                            <template x-if="filteredItems.length === 0">
+                                <tr>
+                                    <td colspan="6" class="px-5 py-8 text-center text-slate-400 text-sm">
+                                        Nenhum imóvel encontrado para os filtros selecionados.
+                                    </td>
+                                </tr>
+                            </template>
                         </tbody>
                     </table>
+                </div>
+
+                <!-- Pagination Footer -->
+                <div class="px-5 py-4 border-t border-slate-200 bg-slate-50 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+                    <!-- Quantity per page & Summary info -->
+                    <div class="flex flex-wrap items-center gap-4">
+                        <div class="flex items-center space-x-2">
+                            <label for="per-page-select" class="text-xs text-slate-500 font-medium">Exibir:</label>
+                            <select id="per-page-select" x-model.number="perPage" @change="resetPage()" class="text-xs bg-white border border-slate-300 rounded-lg px-2.5 py-1.5 focus:ring-2 focus:ring-emerald-500 font-semibold text-slate-700 shadow-sm">
+                                <option value="10">10 por página</option>
+                                <option value="100">100 por página (padrão)</option>
+                                <option value="1000">1.000 por página</option>
+                            </select>
+                        </div>
+
+                        <span class="text-xs text-slate-500">
+                            Mostrando 
+                            <strong class="text-slate-700" x-text="filteredItems.length === 0 ? 0 : ((currentPage - 1) * perPage + 1)"></strong>
+                            a 
+                            <strong class="text-slate-700" x-text="Math.min(currentPage * perPage, filteredItems.length)"></strong> 
+                            de 
+                            <strong class="text-slate-700" x-text="filteredItems.length"></strong> imóveis
+                        </span>
+                    </div>
+
+                    <!-- Page navigation buttons -->
+                    <div class="flex items-center space-x-2">
+                        <button 
+                            @click="changePage(currentPage - 1)" 
+                            :disabled="currentPage === 1" 
+                            class="inline-flex items-center px-3 py-1.5 bg-white border border-slate-300 rounded-lg text-xs font-semibold text-slate-700 shadow-sm hover:bg-slate-50 disabled:opacity-40 disabled:cursor-not-allowed transition">
+                            ← Anterior
+                        </button>
+
+                        <div class="flex items-center space-x-1">
+                            <span class="text-xs text-slate-500 px-1">Página</span>
+                            <select 
+                                x-model.number="currentPage" 
+                                class="text-xs bg-white border border-slate-300 rounded-lg px-2 py-1 font-bold text-slate-800 shadow-sm focus:ring-2 focus:ring-emerald-500">
+                                <template x-for="p in totalPages" :key="p">
+                                    <option :value="p" x-text="p"></option>
+                                </template>
+                            </select>
+                            <span class="text-xs text-slate-500 px-1" x-text="'de ' + totalPages"></span>
+                        </div>
+
+                        <button 
+                            @click="changePage(currentPage + 1)" 
+                            :disabled="currentPage >= totalPages" 
+                            class="inline-flex items-center px-3 py-1.5 bg-white border border-slate-300 rounded-lg text-xs font-semibold text-slate-700 shadow-sm hover:bg-slate-50 disabled:opacity-40 disabled:cursor-not-allowed transition">
+                            Próxima →
+                        </button>
+                    </div>
                 </div>
 
             </div>
