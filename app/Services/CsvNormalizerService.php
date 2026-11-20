@@ -47,7 +47,7 @@ class CsvNormalizerService
     /**
      * Normalize a single row data.
      */
-    public function normalizeRow(array $row): array
+    private function normalizeRow(array $row): array
     {
         $precoAnunciado = $this->parseMoney($row['preco_anunciado'] ?? null);
         $precoFechado = $this->parseMoney($row['preco_fechado'] ?? null);
@@ -126,35 +126,16 @@ class CsvNormalizerService
     }
 
     /**
-     * Standardize city names.
+     * Clean and format city name using title case without hardcoded lists.
      */
     public function normalizeCity(string $city): string
     {
-        $c = trim($city);
-        $lower = mb_strtolower($c, 'UTF-8');
-
-        // Variations of São Paulo
-        if (in_array($lower, ['sp', 'sao paulo', 'são paulo', 's. paulo', 's.paulo'])) {
-            return 'São Paulo';
+        $trimmed = trim($city);
+        if ($trimmed === '') {
+            return '';
         }
 
-        // Campinas
-        if (in_array($lower, ['campinas'])) {
-            return 'Campinas';
-        }
-
-        // Ribeirão Preto
-        if (in_array($lower, ['ribeirao preto', 'ribeirão preto'])) {
-            return 'Ribeirão Preto';
-        }
-
-        // Santos, Barueri, Sorocaba, Cotia
-        if (in_array($lower, ['santos'])) return 'Santos';
-        if (in_array($lower, ['barueri'])) return 'Barueri';
-        if (in_array($lower, ['sorocaba'])) return 'Sorocaba';
-        if (in_array($lower, ['cotia'])) return 'Cotia';
-
-        return mb_convert_case($c, MB_CASE_TITLE, 'UTF-8');
+        return mb_convert_case($trimmed, MB_CASE_TITLE, 'UTF-8');
     }
 
     /**

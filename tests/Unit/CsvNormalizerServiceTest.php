@@ -51,20 +51,12 @@ class CsvNormalizerServiceTest extends TestCase
 
     public function test_it_normalizes_city_names(): void
     {
-        $this->assertEquals('São Paulo', $this->service->normalizeCity('SP'));
-        $this->assertEquals('São Paulo', $this->service->normalizeCity('sao paulo'));
-        $this->assertEquals('São Paulo', $this->service->normalizeCity('São Paulo'));
-        $this->assertEquals('São Paulo', $this->service->normalizeCity('S. Paulo'));
-
         $this->assertEquals('Campinas', $this->service->normalizeCity('campinas'));
-        $this->assertEquals('Campinas', $this->service->normalizeCity('Campinas'));
-
-        $this->assertEquals('Ribeirão Preto', $this->service->normalizeCity('Ribeirao Preto'));
-        $this->assertEquals('Ribeirão Preto', $this->service->normalizeCity('Ribeirão Preto'));
-
-        $this->assertEquals('Santos', $this->service->normalizeCity('Santos'));
-        $this->assertEquals('Sorocaba', $this->service->normalizeCity('Sorocaba'));
-        $this->assertEquals('Barueri', $this->service->normalizeCity('Barueri'));
-        $this->assertEquals('Cotia', $this->service->normalizeCity('Cotia'));
+        $this->assertEquals('Campinas', $this->service->normalizeCity('CAMPINAS'));
+        $this->assertEquals('Sao Paulo', $this->service->normalizeCity('sao paulo'));
+        $this->assertEquals('São Paulo', $this->service->normalizeCity('são paulo'));
+        $this->assertEquals('Ribeirão Preto', $this->service->normalizeCity('ribeirão preto'));
+        $this->assertEquals('Santos', $this->service->normalizeCity('santos'));
+        $this->assertEquals('', $this->service->normalizeCity('   '));
     }
 }
