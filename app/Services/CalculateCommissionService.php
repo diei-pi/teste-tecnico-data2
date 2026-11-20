@@ -59,7 +59,11 @@ class CalculateCommissionService
 
         foreach ($items as $item) {
             $processed = $this->evaluateItemForMonth($item, $cycleStart, $cycleEnd, $yearMonth);
-            $processedItems[] = $processed;
+            
+            // Armazena no array de visualização da tabela até 10.000 itens para não estourar a RAM
+            if (count($processedItems) < 10000) {
+                $processedItems[] = $processed;
+            }
 
             $totalGarantido += $processed['comissao_oficial'];
 
