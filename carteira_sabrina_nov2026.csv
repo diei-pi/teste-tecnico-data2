@@ -1,0 +1,19 @@
+codigo,tipo,bairro,cidade,negocio,status,preco_anunciado,preco_fechado,data_fechamento,inicio_contrato,observacao
+IMV-001,Apartamento,Pinheiros,São Paulo,Venda,Vendido,"R$ 980.000,00","R$ 950.000,00",05/11/2026,,
+IMV-002,Casa,Alphaville,Barueri,Venda,Disponível,1450000,,,,
+IMV-003,Apartamento,Centro,Campinas,Aluguel,Alugado,"2.800",,,01/11/2026,contrato novo
+IMV-004,Apartamento,Vila Mariana,SP,Aluguel,Alugado,R$3.500/mês,,,10/06/2026,
+IMV-005,Sala comercial,Centro,Santos,Aluguel,Disponível,"1.900,00",,,,
+IMV-006,Casa,Barão Geraldo,campinas,Venda,Em negociação,720 mil,,,,cliente fez proposta de 690 mil
+IMV-007,Apartamento,Moema,São Paulo,Venda,Vendido,"R$ 1.200.000,00","1.150.000",18/10/2026,,
+IMV-008,Kitnet,Bela Vista,sao paulo,Aluguel,Alugado,1600,,,01/10/2026,
+IMV-009,Apartamento,Gonzaga,Santos,Venda,Disponível,"R$ 640.000,00",,,,
+IMV-010,Casa,Jardim Botânico,Ribeirão Preto,Aluguel,Em negociação,"R$ 4.200,00",,,,visita marcada
+IMV-011,Apartamento,Cambuí,Campinas,Aluguel,Alugado,3100,,,15/11/2026,
+IMV-012,Sala comercial,Itaim Bibi,S. Paulo,Venda,Suspenso,"2.300.000",,,,proprietário desistiu de vender por enquanto
+IMV-013,Apartamento,Centro,Sorocaba,Venda,Vendido,410 mil,400 mil,20/11/2026,,
+IMV-014,Casa,Jardim Paulista,Ribeirao Preto,Aluguel,Alugado,"R$ 5.000,00",,,01/12/2025,
+IMV-015,Apartamento,Ponta da Praia,Santos,Aluguel,Disponível,2400,,,,
+IMV-016,Terreno,Granja Viana,Cotia,Venda,Em negociação,"R$ 380.000,00",,,,
+IMV-017,Apartamento,Perdizes,São Paulo,Aluguel,Alugado,"4.500,00",,,01/09/2026,inquilino atrasou o aluguel de novembro
+IMV-018,Casa,Taquaral,Campinas,Venda,Reservado,"R$ 890.000,00",,,,sinal pago - escritura dia 10/12
