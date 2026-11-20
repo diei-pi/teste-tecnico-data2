@@ -3,6 +3,7 @@
 namespace App\Services;
 
 use Carbon\Carbon;
+use InvalidArgumentException;
 
 class CsvNormalizerService
 {
@@ -12,11 +13,9 @@ class CsvNormalizerService
     public function parse(string $filePath): array
     {
         if (!file_exists($filePath)) {
-            throw new \InvalidArgumentException("Arquivo CSV não encontrado: {$filePath}");
+            throw new InvalidArgumentException("Arquivo CSV não encontrado: {$filePath}");
         }
-
         $content = file_get_contents($filePath);
-        // Remove UTF-8 BOM if present
         $content = preg_replace('/^\xEF\xBB\xBF/', '', $content);
 
         $lines = preg_split('/\r\n|\r|\n/', trim($content));
@@ -24,7 +23,6 @@ class CsvNormalizerService
             return [];
         }
 
-        // Detect delimiter: comma or semicolon
         $firstLine = $lines[0];
         $delimiter = substr_count($firstLine, ';') > substr_count($firstLine, ',') ? ';' : ',';
 
@@ -33,21 +31,16 @@ class CsvNormalizerService
         $header = array_map(fn($col) => trim(strtolower($col)), $header);
 
         $normalized = [];
-
         foreach ($rawRows as $row) {
             if (empty($row) || (count($row) === 1 && trim($row[0] ?? '') === '')) {
                 continue;
             }
-
-            // Combine header with row values
             $data = [];
             foreach ($header as $index => $colName) {
                 $data[$colName] = isset($row[$index]) ? trim($row[$index]) : null;
             }
-
             $normalized[] = $this->normalizeRow($data);
         }
-
         return $normalized;
     }
 
