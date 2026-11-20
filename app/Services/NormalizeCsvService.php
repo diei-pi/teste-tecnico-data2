@@ -11,7 +11,7 @@ use InvalidArgumentException;
 class NormalizeCsvService
 {
     /**
-     * Parse and normalize the given CSV file path.
+     * Parse and normalize the given CSV file path using memory-efficient streaming.
      * Public entrypoint of the service.
      */
     public function parse(string $filePath): array
@@ -20,26 +20,28 @@ class NormalizeCsvService
             throw new InvalidArgumentException("Arquivo CSV não encontrado: {$filePath}");
         }
 
-        $content = file_get_contents($filePath);
-        // Remove UTF-8 BOM if present
-        $content = preg_replace('/^\xEF\xBB\xBF/', '', $content);
+        $handle = fopen($filePath, 'r');
+        if ($handle === false) {
+            throw new InvalidArgumentException("Não foi possível abrir o arquivo CSV: {$filePath}");
+        }
 
-        $lines = preg_split('/\r\n|\r|\n/', trim($content));
-        if (empty($lines)) {
+        // Detect delimiter and skip UTF-8 BOM if present
+        $firstLine = fgets($handle);
+        if ($firstLine === false || trim($firstLine) === '') {
+            fclose($handle);
             return [];
         }
 
-        // Detect delimiter: comma or semicolon
-        $firstLine = $lines[0];
+        // Strip BOM
+        $firstLine = preg_replace('/^\xEF\xBB\xBF/', '', $firstLine);
         $delimiter = substr_count($firstLine, ';') > substr_count($firstLine, ',') ? ';' : ',';
 
-        $rawRows = array_map(fn($line) => str_getcsv($line, $delimiter, '"', '\\'), $lines);
-        $header = array_shift($rawRows);
+        $header = str_getcsv(trim($firstLine), $delimiter, '"', '\\');
         $header = array_map(fn($col) => trim(strtolower($col)), $header);
 
         $normalized = [];
 
-        foreach ($rawRows as $row) {
+        while (($row = fgetcsv($handle, 0, $delimiter, '"', '\\')) !== false) {
             if (empty($row) || (count($row) === 1 && trim($row[0] ?? '') === '')) {
                 continue;
             }
@@ -52,6 +54,8 @@ class NormalizeCsvService
 
             $normalized[] = $this->normalizeRow($data);
         }
+
+        fclose($handle);
 
         return $normalized;
     }

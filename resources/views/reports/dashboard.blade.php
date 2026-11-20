@@ -228,7 +228,14 @@
                 <div class="p-5 border-b border-slate-200 flex flex-col md:flex-row md:items-center justify-between gap-4">
                     <div>
                         <h2 class="text-base font-bold text-slate-900">Detalhamento dos Imóveis & Regras de Comissão</h2>
-                        <p class="text-xs text-slate-500 mt-0.5">Visão transparente e auditável por imóvel para conferência contábil</p>
+                        <p class="text-xs text-slate-500 mt-0.5">
+                            Visão transparente e auditável por imóvel para conferência contábil
+                            @if(!empty($monthData['is_truncated']))
+                                <span class="ml-2 font-medium text-emerald-700 bg-emerald-50 px-2 py-0.5 rounded">
+                                    Exibindo primeiros 1.000 de {{ number_format($monthData['total_items_count'], 0, ',', '.') }} imóveis
+                                </span>
+                            @endif
+                        </p>
                     </div>
 
                     <!-- Search and Filters -->

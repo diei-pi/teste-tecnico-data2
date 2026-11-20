@@ -79,6 +79,10 @@ class CalculateCommissionService
             $totalPendente += $processed['comissao_pendente'];
         }
 
+        $previewItems = count($processedItems) > 1000
+            ? array_slice($processedItems, 0, 1000)
+            : $processedItems;
+
         return [
             'month_key' => $yearMonth,
             'month_name' => $this->getMonthLabel($yearMonth),
@@ -93,7 +97,9 @@ class CalculateCommissionService
                 'total_pendente' => round($totalPendente, 2),
                 'imoveis_count' => count($items),
             ],
-            'items' => $processedItems,
+            'items' => $previewItems,
+            'total_items_count' => count($processedItems),
+            'is_truncated' => count($processedItems) > 1000,
         ];
     }
 
