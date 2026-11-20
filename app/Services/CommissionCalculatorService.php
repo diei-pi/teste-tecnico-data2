@@ -2,6 +2,8 @@
 
 namespace App\Services;
 
+use App\Enums\BusinessType;
+use App\Enums\PropertyStatus;
 use Carbon\Carbon;
 
 class CommissionCalculatorService
@@ -88,8 +90,8 @@ class CommissionCalculatorService
      */
     protected function evaluateItemForMonth(array $item, Carbon $cycleStart, Carbon $cycleEnd, string $yearMonth): array
     {
-        $negocio = $item['negocio'];
-        $status = $item['status'];
+        $negocio = $item['negocio_enum'] ?? BusinessType::tryFrom($item['negocio'] ?? '') ?? $item['negocio'];
+        $status = $item['status_enum'] ?? PropertyStatus::tryFrom($item['status'] ?? '') ?? $item['status'];
         $obs = mb_strtolower($item['observacao'] ?? '', 'UTF-8');
 
         $dataFechamento = !empty($item['data_fechamento']) ? Carbon::parse($item['data_fechamento']) : null;
@@ -102,9 +104,18 @@ class CommissionCalculatorService
         $categoria = 'estoque'; // venda_fechada, aluguel_novo, aluguel_recorrente, pipeline, pendente, estoque, suspenso
         $badgeClass = 'bg-gray-100 text-gray-800';
 
+        $isVenda = ($negocio === BusinessType::Venda || $negocio === 'Venda');
+        $isAluguel = ($negocio === BusinessType::Aluguel || $negocio === 'Aluguel');
+
+        $isVendido = ($status === PropertyStatus::Vendido || $status === 'Vendido');
+        $isAlugado = ($status === PropertyStatus::Alugado || $status === 'Alugado');
+        $isEmNegociacao = ($status === PropertyStatus::EmNegociacao || $status === 'Em negociação');
+        $isReservado = ($status === PropertyStatus::Reservado || $status === 'Reservado');
+        $isSuspenso = ($status === PropertyStatus::Suspenso || $status === 'Suspenso');
+
         // 1. VENDA
-        if ($negocio === 'Venda') {
-            if ($status === 'Vendido') {
+        if ($isVenda) {
+            if ($isVendido) {
                 $precoBase = $item['preco_fechado'] ?? $item['preco_anunciado'] ?? 0.0;
 
                 if ($dataFechamento && $dataFechamento->betweenIncluded($cycleStart, $cycleEnd)) {
@@ -122,19 +133,19 @@ class CommissionCalculatorService
                     $categoria = 'futuro';
                     $badgeClass = 'bg-blue-50 text-blue-600';
                 }
-            } elseif ($status === 'Em negociação') {
+            } elseif ($isEmNegociacao) {
                 $precoBase = $item['preco_anunciado'] ?? 0.0;
                 $comissaoPipeline = $precoBase * 0.06;
                 $regra = 'Em negociação (previsão de 6% sobre anunciado)';
                 $categoria = 'pipeline';
                 $badgeClass = 'bg-amber-100 text-amber-800';
-            } elseif ($status === 'Reservado') {
+            } elseif ($isReservado) {
                 // If reserved with future deed noted
                 $precoBase = $item['preco_anunciado'] ?? 0.0;
                 $regra = 'Reservado (sinal pago - comissão diferida para mês da escritura)';
                 $categoria = 'reservado';
                 $badgeClass = 'bg-purple-100 text-purple-800';
-            } elseif ($status === 'Suspenso') {
+            } elseif ($isSuspenso) {
                 $regra = 'Imóvel suspenso pelo proprietário';
                 $categoria = 'suspenso';
                 $badgeClass = 'bg-red-50 text-red-600';
@@ -146,10 +157,10 @@ class CommissionCalculatorService
         }
 
         // 2. ALUGUEL
-        elseif ($negocio === 'Aluguel') {
+        elseif ($isAluguel) {
             $precoBase = $item['preco_fechado'] ?? $item['preco_anunciado'] ?? 0.0;
 
-            if ($status === 'Alugado') {
+            if ($isAlugado) {
                 // Check for delayed rent payment (inadimplência / atraso)
                 $isAtrasado = str_contains($obs, 'atrasou') || str_contains($obs, 'inadimpl');
 
@@ -184,7 +195,7 @@ class CommissionCalculatorService
                     $categoria = 'futuro';
                     $badgeClass = 'bg-gray-100 text-gray-500';
                 }
-            } elseif ($status === 'Em negociação') {
+            } elseif ($isEmNegociacao) {
                 $comissaoPipeline = $precoBase; // 100% of 1st month expected
                 $regra = 'Em negociação (previsão de 100% no 1º mês)';
                 $categoria = 'pipeline';

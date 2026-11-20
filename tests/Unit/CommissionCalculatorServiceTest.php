@@ -3,18 +3,18 @@
 namespace Tests\Unit;
 
 use App\Services\CommissionCalculatorService;
-use App\Services\CsvNormalizerService;
+use App\Services\NormalizeCsvService;
 use PHPUnit\Framework\TestCase;
 
 class CommissionCalculatorServiceTest extends TestCase
 {
-    private CsvNormalizerService $normalizer;
+    private NormalizeCsvService $normalizer;
     private CommissionCalculatorService $calculator;
 
     protected function setUp(): void
     {
         parent::setUp();
-        $this->normalizer = new CsvNormalizerService();
+        $this->normalizer = new NormalizeCsvService();
         $this->calculator = new CommissionCalculatorService();
     }
 

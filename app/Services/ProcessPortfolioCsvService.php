@@ -10,7 +10,7 @@ use Throwable;
 class ProcessPortfolioCsvService
 {
     public function __construct(
-        protected CsvNormalizerService $csvNormalizerService,
+        protected NormalizeCsvService $normalizeCsvService,
         protected CommissionCalculatorService $commissionCalculatorService
     ) {}
 
@@ -24,22 +24,32 @@ class ProcessPortfolioCsvService
             Log::error("Report not found: {$reportId}");
             return;
         }
+
         try {
             $report->update(['status' => 'processing']);
-            $normalizedItems = $this->csvNormalizerService->parse($filePath);
+
+            // Parse and clean CSV
+            $normalizedItems = $this->normalizeCsvService->parse($filePath);
+
             if (empty($normalizedItems)) {
                 throw new RuntimeException('O arquivo CSV está vazio ou em formato inválido.');
             }
+
+            // Calculate commissions across all months
             $results = $this->commissionCalculatorService->calculateAll($normalizedItems);
+
+            // Persist structured JSON in the database
             $report->update([
                 'status' => 'completed',
                 'data' => $results,
             ]);
+
             Log::info("Report {$reportId} successfully processed with {$results['total_items_in_portfolio']} items.");
         } catch (Throwable $e) {
             Log::error("Error processing report {$reportId}: " . $e->getMessage(), [
                 'trace' => $e->getTraceAsString(),
             ]);
+
             $report->update([
                 'status' => 'failed',
                 'error_message' => $e->getMessage(),
