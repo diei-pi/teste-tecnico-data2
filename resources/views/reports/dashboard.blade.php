@@ -93,9 +93,24 @@
                 </div>
             </div>
         @elseif($currentReport && $currentReport->status === 'failed')
-            <div class="bg-red-50 border-l-4 border-red-500 p-4 rounded-r-lg shadow-sm">
-                <h3 class="text-sm font-bold text-red-900">Falha ao processar arquivo</h3>
-                <p class="text-xs text-red-700 mt-1">{{ $currentReport->error_message ?? 'Erro desconhecido durante a leitura do CSV.' }}</p>
+            <div class="bg-rose-50 border-l-4 border-rose-500 p-4 rounded-r-xl shadow-sm flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+                <div class="flex items-start space-x-3">
+                    <span class="text-2xl">⚠️</span>
+                    <div>
+                        <h3 class="text-sm font-bold text-rose-900">Erro no processamento da planilha</h3>
+                        <p class="text-xs text-rose-700 mt-0.5">
+                            {{ $currentReport->error_message ?? 'Ocorreu uma falha inesperada durante a leitura deste arquivo.' }}
+                        </p>
+                        <p class="text-xs font-semibold text-rose-800 mt-1">
+                            Por favor, <strong>entre em contato com o suporte técnico</strong> informando o ID #{{ $currentReport->id }} e o arquivo "{{ $currentReport->filename }}".
+                        </p>
+                    </div>
+                </div>
+                <div class="flex items-center space-x-2 shrink-0">
+                    <a href="mailto:suporte@duarteimoveis.com?subject=Falha%20no%20Relat%C3%B3rio%20%23{{ $currentReport->id }}%20-%20{{ urlencode($currentReport->filename) }}" class="inline-flex items-center px-3.5 py-2 bg-rose-600 hover:bg-rose-700 text-white text-xs font-semibold rounded-lg shadow-sm transition">
+                        Contatar Suporte
+                    </a>
+                </div>
             </div>
         @endif
 
@@ -112,6 +127,44 @@
                 <button @click="showUploadModal = true" class="mt-6 inline-flex items-center px-5 py-2.5 bg-emerald-600 hover:bg-emerald-700 text-white font-medium text-sm rounded-xl shadow-md transition">
                     Carregar Planilha Agora
                 </button>
+            </div>
+        @elseif($currentReport->status === 'failed')
+            <!-- Detailed Support Card when report fails -->
+            <div class="bg-white rounded-2xl border border-rose-200 p-8 shadow-sm text-center max-w-2xl mx-auto space-y-4">
+                <div class="w-16 h-16 bg-rose-100 text-rose-600 rounded-full flex items-center justify-center mx-auto text-3xl">
+                    ⚠️
+                </div>
+                <h3 class="text-lg font-bold text-slate-900">Não foi possível processar esta planilha</h3>
+                <p class="text-sm text-slate-600 leading-relaxed">
+                    Ocorreu um erro durante a validação ou o cálculo dos dados do arquivo 
+                    <strong class="text-slate-800 font-mono">{{ $currentReport->filename }}</strong>. 
+                    Seus dados de relatórios anteriores continuam salvos e seguros no histórico.
+                </p>
+
+                <div class="bg-rose-50 border border-rose-200 rounded-xl p-4 text-left text-xs space-y-2">
+                    <div class="flex justify-between text-rose-900 font-semibold border-b border-rose-200/60 pb-1.5">
+                        <span>Protocolo de Erro: #{{ $currentReport->id }}</span>
+                        <span>{{ $currentReport->created_at->format('d/m/Y H:i') }}</span>
+                    </div>
+                    <p class="text-rose-800 font-mono break-words">
+                        {{ $currentReport->error_message ?? 'Falha técnica no worker de fila ao processar lote de dados.' }}
+                    </p>
+                </div>
+
+                <div class="p-4 bg-slate-50 rounded-xl border border-slate-200 text-xs text-slate-600 text-left space-y-1">
+                    <p class="font-bold text-slate-800">📌 Como resolver:</p>
+                    <p>1. Verifique se o arquivo possui colunas válidas no padrão CSV.</p>
+                    <p>2. Se o problema persistir, <strong>entre em contato com nosso time de suporte</strong> informando o número do protocolo acima para análise imediata.</p>
+                </div>
+
+                <div class="flex flex-col sm:flex-row items-center justify-center gap-3 pt-2">
+                    <button @click="showUploadModal = true" class="w-full sm:w-auto px-5 py-2.5 bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-semibold rounded-xl transition">
+                        Tentar Novo Upload
+                    </button>
+                    <a href="mailto:suporte@duarteimoveis.com?subject=Falha%20no%20Processamento%20-%20Protocolo%20%23{{ $currentReport->id }}" class="w-full sm:w-auto inline-flex items-center justify-center px-5 py-2.5 bg-rose-600 hover:bg-rose-700 text-white text-xs font-semibold rounded-xl shadow transition">
+                        ✉️ Entrar em Contato com o Suporte
+                    </a>
+                </div>
             </div>
         @elseif($monthData)
 

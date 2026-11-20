@@ -25,4 +25,18 @@ class ProcessPortfolioCsvJob implements ShouldQueue
     {
         $processPortfolioCsvService->process($this->reportId, $this->filePath);
     }
+
+    /**
+     * Handle a job failure (unhandled exceptions, memory exhaustion, timeout, etc.).
+     */
+    public function failed(?\Throwable $exception): void
+    {
+        $report = \App\Models\Report::find($this->reportId);
+        if ($report && $report->status !== 'completed') {
+            $report->update([
+                'status' => 'failed',
+                'error_message' => 'Ocorreu uma falha no processamento da planilha. Por favor, entre em contato com o suporte técnico.',
+            ]);
+        }
+    }
 }
