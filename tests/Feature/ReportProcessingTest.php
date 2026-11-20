@@ -53,7 +53,7 @@ class ReportProcessingTest extends TestCase
         ]);
 
         $job = new ProcessPortfolioCsvJob($report->id, $csvPath);
-        $job->handle(new CsvNormalizerService(), new CommissionCalculatorService());
+        $job->handle(app(\App\Services\ProcessPortfolioCsvService::class));
 
         $report->refresh();
 

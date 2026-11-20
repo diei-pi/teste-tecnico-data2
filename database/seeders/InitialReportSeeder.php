@@ -2,10 +2,8 @@
 
 namespace Database\Seeders;
 
-use App\Jobs\ProcessPortfolioCsvJob;
 use App\Models\Report;
-use App\Services\CommissionCalculatorService;
-use App\Services\CsvNormalizerService;
+use App\Services\ProcessPortfolioCsvService;
 use Illuminate\Database\Seeder;
 
 class InitialReportSeeder extends Seeder
@@ -22,7 +20,6 @@ class InitialReportSeeder extends Seeder
             'status' => 'pending',
         ]);
 
-        $job = new ProcessPortfolioCsvJob($report->id, $csvPath);
-        $job->handle(new CsvNormalizerService(), new CommissionCalculatorService());
+        app(ProcessPortfolioCsvService::class)->process($report->id, $csvPath);
     }
 }
