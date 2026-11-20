@@ -11,7 +11,7 @@ class ProcessPortfolioCsvService
 {
     public function __construct(
         protected NormalizeCsvService $normalizeCsvService,
-        protected CommissionCalculatorService $commissionCalculatorService
+        protected CalculateCommissionService $calculateCommissionService
     ) {}
 
     /**
@@ -36,7 +36,7 @@ class ProcessPortfolioCsvService
             }
 
             // Calculate commissions across all months
-            $results = $this->commissionCalculatorService->calculateAll($normalizedItems);
+            $results = $this->calculateCommissionService->calculateAll($normalizedItems);
 
             // Persist structured JSON in the database
             $report->update([

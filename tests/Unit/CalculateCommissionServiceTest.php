@@ -2,20 +2,21 @@
 
 namespace Tests\Unit;
 
-use App\Services\CommissionCalculatorService;
+use App\Enums\CommissionCategory;
+use App\Services\CalculateCommissionService;
 use App\Services\NormalizeCsvService;
 use PHPUnit\Framework\TestCase;
 
-class CommissionCalculatorServiceTest extends TestCase
+class CalculateCommissionServiceTest extends TestCase
 {
     private NormalizeCsvService $normalizer;
-    private CommissionCalculatorService $calculator;
+    private CalculateCommissionService $calculator;
 
     protected function setUp(): void
     {
         parent::setUp();
         $this->normalizer = new NormalizeCsvService();
-        $this->calculator = new CommissionCalculatorService();
+        $this->calculator = new CalculateCommissionService();
     }
 
     public function test_it_calculates_november_2026_commissions_accurately(): void
@@ -78,10 +79,10 @@ class CommissionCalculatorServiceTest extends TestCase
 
         // IMV-013: Vendido em 20/11/2026 (dia limite do corte) -> R$ 24.000 no ciclo de novembro
         $this->assertEquals(24000.0, $byCode['IMV-013']['comissao_oficial']);
-        $this->assertEquals('venda_fechada', $byCode['IMV-013']['categoria']);
+        $this->assertEquals(CommissionCategory::VendaFechada->value, $byCode['IMV-013']['categoria']);
 
         // IMV-018: Reservado com escritura para 10/12 -> R$ 0 em novembro
         $this->assertEquals(0.0, $byCode['IMV-018']['comissao_oficial']);
-        $this->assertEquals('reservado', $byCode['IMV-018']['categoria']);
+        $this->assertEquals(CommissionCategory::Reservado->value, $byCode['IMV-018']['categoria']);
     }
 }
