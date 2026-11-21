@@ -6,15 +6,16 @@ use App\Enums\BusinessType;
 use App\Enums\PropertyStatus;
 use App\Helpers\DateHelper;
 use App\Helpers\MoneyHelper;
+use Generator;
 use InvalidArgumentException;
 
 class NormalizeCsvService
 {
     /**
-     * Parse and normalize the given CSV file path using memory-efficient streaming.
-     * Public entrypoint of the service.
+     * Parse and stream normalized rows from CSV file using a Generator.
+     * Memory consumption is O(1) (~few KB), making it ideal for large datasets (100k+ rows).
      */
-    public function parse(string $filePath): array
+    public function parseStream(string $filePath): Generator
     {
         if (!file_exists($filePath)) {
             throw new InvalidArgumentException("Arquivo CSV não encontrado: {$filePath}");
@@ -25,39 +26,45 @@ class NormalizeCsvService
             throw new InvalidArgumentException("Não foi possível abrir o arquivo CSV: {$filePath}");
         }
 
-        // Detect delimiter and skip UTF-8 BOM if present
-        $firstLine = fgets($handle);
-        if ($firstLine === false || trim($firstLine) === '') {
+        try {
+            // Read first line to detect delimiter and BOM
+            $firstLine = fgets($handle);
+            if ($firstLine === false || trim($firstLine) === '') {
+                return;
+            }
+
+            // Strip UTF-8 BOM if present
+            $firstLine = preg_replace('/^\xEF\xBB\xBF/', '', $firstLine);
+            $delimiter = substr_count($firstLine, ';') > substr_count($firstLine, ',') ? ';' : ',';
+
+            $header = str_getcsv(trim($firstLine), $delimiter, '"', '\\');
+            $header = array_map(fn($col) => trim(strtolower($col)), $header);
+
+            while (($row = fgetcsv($handle, 0, $delimiter, '"', '\\')) !== false) {
+                if (empty($row) || (count($row) === 1 && trim($row[0] ?? '') === '')) {
+                    continue;
+                }
+
+                // Combine header with row values
+                $data = [];
+                foreach ($header as $index => $colName) {
+                    $data[$colName] = isset($row[$index]) ? trim($row[$index]) : null;
+                }
+
+                yield $this->normalizeRow($data);
+            }
+        } finally {
             fclose($handle);
-            return [];
         }
+    }
 
-        // Strip BOM
-        $firstLine = preg_replace('/^\xEF\xBB\xBF/', '', $firstLine);
-        $delimiter = substr_count($firstLine, ';') > substr_count($firstLine, ',') ? ';' : ',';
-
-        $header = str_getcsv(trim($firstLine), $delimiter, '"', '\\');
-        $header = array_map(fn($col) => trim(strtolower($col)), $header);
-
-        $normalized = [];
-
-        while (($row = fgetcsv($handle, 0, $delimiter, '"', '\\')) !== false) {
-            if (empty($row) || (count($row) === 1 && trim($row[0] ?? '') === '')) {
-                continue;
-            }
-
-            // Combine header with row values
-            $data = [];
-            foreach ($header as $index => $colName) {
-                $data[$colName] = isset($row[$index]) ? trim($row[$index]) : null;
-            }
-
-            $normalized[] = $this->normalizeRow($data);
-        }
-
-        fclose($handle);
-
-        return $normalized;
+    /**
+     * Parse CSV file and return all rows in an array.
+     * Convenient for smaller datasets and tests.
+     */
+    public function parse(string $filePath): array
+    {
+        return iterator_to_array($this->parseStream($filePath));
     }
 
     /**

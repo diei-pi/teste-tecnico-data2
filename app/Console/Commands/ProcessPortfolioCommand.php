@@ -29,21 +29,19 @@ class ProcessPortfolioCommand extends Command
         // Find file path
         $filePath = null;
 
-        // Check in storage/app/private/csv_uploads or storage/app/csv_uploads
-        $disk = Storage::disk('local');
-        $files = $disk->allFiles('csv_uploads');
-        foreach ($files as $f) {
-            // Check if file exists
-            $full = $disk->path($f);
-            if (file_exists($full)) {
-                $filePath = $full;
-                break;
-            }
-        }
-
-        // Fallback for default test file if not found in uploads
-        if (!$filePath || !file_exists($filePath)) {
+        // Find file path: check project root first (e.g. carteira_sabrina_nov2026.csv or carteira_100k_linhas.csv)
+        if (file_exists(base_path($report->filename))) {
             $filePath = base_path($report->filename);
+        } else {
+            $disk = Storage::disk('local');
+            $files = $disk->allFiles('csv_uploads');
+            foreach ($files as $f) {
+                $full = $disk->path($f);
+                if (file_exists($full)) {
+                    $filePath = $full;
+                    break;
+                }
+            }
         }
 
         if (!file_exists($filePath)) {
