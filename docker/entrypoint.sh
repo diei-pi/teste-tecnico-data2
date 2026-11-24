@@ -36,9 +36,6 @@ fi
 echo "Running database migrations..."
 php artisan migrate --force
 
-echo "Seeding initial report if empty..."
-php artisan db:seed --force
-
 # Start background queue worker
 echo "Starting background queue worker..."
 php artisan queue:work --tries=1 --timeout=120 &
