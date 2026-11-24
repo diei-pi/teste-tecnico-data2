@@ -42,9 +42,13 @@ WORKDIR /var/www/html
 # Copy application files
 COPY . /var/www/html
 
+# Install Composer dependencies (for cloud environments where vendor is not mounted)
+RUN composer install --no-dev --optimize-autoloader --no-interaction
+
 # Permissions
-RUN chmod -R 777 /var/www/html/storage /var/www/html/bootstrap/cache
+RUN chmod -R 777 /var/www/html/storage /var/www/html/bootstrap/cache && \
+    chmod +x /var/www/html/docker/entrypoint.sh
 
 EXPOSE 8000
 
-CMD ["php", "artisan", "serve", "--host=0.0.0.0", "--port=8000"]
+ENTRYPOINT ["/var/www/html/docker/entrypoint.sh"]

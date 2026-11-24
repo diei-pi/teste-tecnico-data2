@@ -10,6 +10,10 @@ class InitialReportSeeder extends Seeder
 {
     public function run(): void
     {
+        if (Report::count() > 0) {
+            return;
+        }
+
         $csvPath = base_path('carteira_sabrina_nov2026.csv');
         if (!file_exists($csvPath)) {
             return;
